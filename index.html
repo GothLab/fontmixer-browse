@@ -632,6 +632,29 @@
                 });
             });
         });
+
+
+
+
+  document.addEventListener("click", function (e) {
+    const a = e.target.closest && e.target.closest("a");
+    if (!a) return;
+
+    // Only handle real navigations
+    const href = a.href;
+    if (!href) return;
+
+    // If you want: only force external / downloads
+    // const isDownload = a.hasAttribute("download") || /\.(zip|exe|dmg|pdf)$/i.test(href);
+    // if (!isDownload) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Send to parent CEP panel
+    window.parent.postMessage({ type: "OPEN_IN_BROWSER", href }, "*");
+  }, true);
+        
     </script>
 </body>
 </html>
