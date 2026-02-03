@@ -1332,11 +1332,6 @@
   ],
   "Gothic": [
     {
-      "fontfile": "3621-karbon-app.otf",
-      "fontname": ".",
-      "merged": "For app use only. See license for details. | http://justinpenner.ca/licenses/font-free-license | Justin Penner"
-    },
-    {
       "fontfile": "3621-karbon-desktop.otf",
       "fontname": "3621 Karbon Regular",
       "merged": "For desktop use only. See license for details. | http://justinpenner.ca/licenses/font-free-license | Justin Penner"
@@ -1347,18 +1342,8 @@
       "merged": "ABJAD  is a gothic typeface designed in a clean and more modern style | buy your license at www.limitype.com or our partner marketplace | www.limitype.com | Muhammad Muammar / @hellowammar"
     },
     {
-      "fontfile": "Agise Rujdi.otf",
-      "fontname": "Agise rujdi Regular",
-      "merged": "Copyright (c) 2020 by Stringlabs. All rights reserved. | Stringlabs"
-    },
-    {
       "fontfile": "Agise Rujdi.ttf",
       "fontname": "Agise rujdi Regular",
-      "merged": "Copyright (c) 2020 by Stringlabs. All rights reserved. | Stringlabs"
-    },
-    {
-      "fontfile": "Angel wish.otf",
-      "fontname": "Angel wish Regular",
       "merged": "Copyright (c) 2020 by Stringlabs. All rights reserved. | Stringlabs"
     },
     {
