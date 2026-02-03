@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font Browser</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --card-dark: #1e1e1e;
+            --text-light: #e0e0e0;
+            --text-muted: #aaa;
+            --border-dark: #333;
+            --primary-color: #dc3545;
+        }
+        
+        body {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        .container-fluid {
+            padding: 0;
+        }
+        
+        .nav-tabs {
+            border-bottom: 2px solid var(--border-dark);
+            margin-bottom: 15px;
+            position: sticky;
+            top: 56px;
+            z-index: 1100;
+            background: var(--bg-dark);
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--text-muted);
+            font-weight: 600;
+            border: none;
+            padding: 10px 15px;
+            transition: all 0.3s;
+            background: transparent;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-color);
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background-color: transparent;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .tab-content {
+            min-height: 300px;
+        }
+        
+        .font-card {
+            background: var(--card-dark);
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--primary-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .font-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+        
+        .font-name {
+            font-size: 50px;
+            margin-bottom: 8px;
+            word-break: break-word;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            line-height: 1.1;
+        }
+        
+        .font-meta {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+        
+        .license-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .license-link:hover {
+            text-decoration: underline;
+            color: #0a58ca;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+        }
+        
+        .loading-spinner {
+            width: 2.5rem;
+            height: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .no-fonts {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        
+        /* Modal dark theme */
+        .modal-content {
+            background-color: var(--card-dark);
+            color: var(--text-light);
+            border: 1px solid var(--border-dark);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid var(--border-dark);
+        }
+        
+        .modal-footer {
+            border-top: 1px solid var(--border-dark);
+        }
+        
+        .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        .license-note {
+            color: var(--text-light);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-overlay .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .sticky-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 1200;
+            background: var(--bg-dark);
+            padding: 10px 0 8px;
+            border-bottom: 1px solid var(--border-dark);
+        }
+
+        .preview-input {
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid var(--border-dark);
+            background: var(--card-dark);
+            color: var(--text-light);
+            padding: 8px 12px;
+        }
+
+        .preview-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
+        }
+
+        .tab-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 6px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid var(--border-dark);
+            color: var(--text-light);
+            background: var(--card-dark);
+            font-size: 0.75rem;
+            text-decoration: none;
+        }
+
+        .tab-pill:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        body.modal-open {
+            padding-right: 0 !important;
+            overflow: auto !important;
+        }
+        
+        @media (max-width: 576px) {
+            body {
+                padding: 10px;
+            }
+            
+            .nav-tabs .nav-link {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            
+            .font-name {
+                font-size: 30px;
+                min-height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sticky-toolbar">
+        <input
+            type="text"
+            id="previewInput"
+            class="preview-input"
+            placeholder="Type preview text..."
+            aria-label="Font preview text"
+        />
+    </div>
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs" id="fontTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <div class="d-flex align-items-center">
+                <button class="nav-link active" id="brush-tab" data-bs-toggle="tab" data-bs-target="#brush" type="button" role="tab">Brush</button>
+                <a class="tab-pill" href="./fmx_brush.ttf" download title="Download Brush">
+                    <i class="bi bi-download"></i>
+                </a>
+            </div>
+        </li>
+        <li class="nav-item" role="presentation">
+            <div class="d-flex align-items-center">
+                <button class="nav-link" id="cartoon-tab" data-bs-toggle="tab" data-bs-target="#cartoon" type="button" role="tab">Cartoon</button>
+                <a class="tab-pill" href="./fmx_cartoon.ttf" download title="Download Cartoon">
+                    <i class="bi bi-download"></i>
+                </a>
+            </div>
+        </li>
+        <li class="nav-item" role="presentation">
+            <div class="d-flex align-items-center">
+                <button class="nav-link" id="cyberpunk-tab" data-bs-toggle="tab" data-bs-target="#cyberpunk" type="button" role="tab">Cyberpunk</button>
+                <a class="tab-pill" href="./fmx_cyberpunk.ttf" download title="Download Cyberpunk">
+                    <i class="bi bi-download"></i>
+                </a>
+            </div>
+        </li>
+        <li class="nav-item" role="presentation">
+            <div class="d-flex align-items-center">
+                <button class="nav-link" id="gothic-tab" data-bs-toggle="tab" data-bs-target="#gothic" type="button" role="tab">Gothic</button>
+                <a class="tab-pill" href="./fmx_gothic.ttf" download title="Download Gothic">
+                    <i class="bi bi-download"></i>
+                </a>
+            </div>
+        </li>
+        <li class="nav-item" role="presentation">
+            <div class="d-flex align-items-center">
+                <button class="nav-link" id="script-tab" data-bs-toggle="tab" data-bs-target="#script" type="button" role="tab">Script</button>
+                <a class="tab-pill" href="./fmx_script.ttf" download title="Download Script">
+                    <i class="bi bi-download"></i>
+                </a>
+            </div>
+        </li>
+        <li class="nav-item" role="presentation">
+            <div class="d-flex align-items-center">
+                <button class="nav-link" id="vintage-tab" data-bs-toggle="tab" data-bs-target="#vintage" type="button" role="tab">Vintage</button>
+                <a class="tab-pill" href="./fmx_vintage.ttf" download title="Download Vintage">
+                    <i class="bi bi-download"></i>
+                </a>
+            </div>
+        </li>
+        <li class="nav-item" role="presentation">
+            <div class="d-flex align-items-center">
+                <button class="nav-link" id="y2k-tab" data-bs-toggle="tab" data-bs-target="#y2k" type="button" role="tab">Y2K</button>
+                <a class="tab-pill" href="./fmx_y2k.ttf" download title="Download Y2K">
+                    <i class="bi bi-download"></i>
+                </a>
+            </div>
+        </li>
+    </ul>
+    
+    <!-- Tab Content -->
+    <div class="tab-content" id="fontTabsContent">
+        <!-- Brush Tab -->
+        <div class="tab-pane fade show active" id="brush" role="tabpanel" aria-labelledby="brush-tab">
+            <div class="loading">
+                <div class="spinner-border text-primary loading-spinner" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading Brush fonts...</p>
+            </div>
+        </div>
+        
+        <!-- Cartoon Tab -->
+        <div class="tab-pane fade" id="cartoon" role="tabpanel" aria-labelledby="cartoon-tab">
+            <div class="loading">
+                <div class="spinner-border text-primary loading-spinner" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading Cartoon fonts...</p>
+            </div>
+        </div>
+        
+        <!-- Cyberpunk Tab -->
+        <div class="tab-pane fade" id="cyberpunk" role="tabpanel" aria-labelledby="cyberpunk-tab">
+            <div class="loading">
+                <div class="spinner-border text-primary loading-spinner" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading Cyberpunk fonts...</p>
+            </div>
+        </div>
+        
+        <!-- Gothic Tab -->
+        <div class="tab-pane fade" id="gothic" role="tabpanel" aria-labelledby="gothic-tab">
+            <div class="loading">
+                <div class="spinner-border text-primary loading-spinner" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading Gothic fonts...</p>
+            </div>
+        </div>
+        
+        <!-- Script Tab -->
+        <div class="tab-pane fade" id="script" role="tabpanel" aria-labelledby="script-tab">
+            <div class="loading">
+                <div class="spinner-border text-primary loading-spinner" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading Script fonts...</p>
+            </div>
+        </div>
+        
+        <!-- Vintage Tab -->
+        <div class="tab-pane fade" id="vintage" role="tabpanel" aria-labelledby="vintage-tab">
+            <div class="loading">
+                <div class="spinner-border text-primary loading-spinner" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading Vintage fonts...</p>
+            </div>
+        </div>
+        
+        <!-- Y2K Tab -->
+        <div class="tab-pane fade" id="y2k" role="tabpanel" aria-labelledby="y2k-tab">
+            <div class="loading">
+                <div class="spinner-border text-primary loading-spinner" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading Y2K fonts...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- License Modal -->
+    <div class="modal fade" id="licenseModal" tabindex="-1" aria-labelledby="licenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="licenseModalLabel">Font License</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="licenseModalBody">
+                    <!-- License content will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full-page loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay" aria-hidden="true">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-light">Loading fonts...</p>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Main JavaScript -->
+    <script>
+        // Configuration
+        const folders = [
+            { id: 'brush', name: 'Brush', path: 'Brush/' },
+            { id: 'cartoon', name: 'Cartoon', path: 'Cartoon/' },
+            { id: 'cyberpunk', name: 'Cyberpunk', path: 'Cyberpunk/' },
+            { id: 'gothic', name: 'Gothic', path: 'Gothic/' },
+            { id: 'script', name: 'Script', path: 'Script/' },
+            { id: 'vintage', name: 'Vintage', path: 'Vintage/' },
+            { id: 'y2k', name: 'Y2K', path: 'Y2K/' }
+        ];
+
+        // Store loaded fonts to avoid duplicates
+        const loadedFonts = new Set();
+        let mergedFonts = {};
+        
+        // Function to extract font name from filename
+        function extractFontName(filename) {
+            let name = filename.replace(/\.[^/.]+$/, "");
+            name = name.replace(/(\.otf|\.ttf|\.woff|\.woff2)$/i, "");
+            name = name.replace(/(-DEMO-VERSION-|-DEMO-|DEMO|demo|Demo|Version|version|VERSION|-[A-Z0-9]{8,})/g, " ");
+            name = name.replace(/\s+/g, " ").trim();
+            name = name.replace(/\w\S*/g, function(txt) {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+            if (name.length < 2) {
+                name = filename.replace(/\.[^/.]+$/, "");
+            }
+            return name;
+        }
+        
+        // Function to dynamically load a font
+        function loadFont(fontFamilyName, fontPath) {
+            if (loadedFonts.has(fontFamilyName)) return;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @font-face {
+                    font-family: '${fontFamilyName}';
+                    src: url('${fontPath}') format('${fontPath.endsWith('.ttf') ? 'truetype' : 'opentype'}');
+                    font-display: swap;
+                }
+            `;
+            document.head.appendChild(style);
+            loadedFonts.add(fontFamilyName);
+        }
+        
+        // Function to show license modal
+        function showLicenseModal(fontName, filename, details) {
+            const modalBody = document.getElementById('licenseModalBody');
+            const licenseText = details && details.trim().length
+                ? details
+                : `License information not available for ${fontName}.`;
+            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${fontName} license`)}`;
+            
+            modalBody.innerHTML = `
+                <h6>${fontName}</h6>
+                <p><strong>File:</strong> ${filename}</p>
+                <div class="mt-3">
+                    <strong>License Terms:</strong>
+                    <p class="mt-2">${licenseText}</p>
+                    <a class="license-link" href="${searchUrl}" target="_blank" rel="noopener">
+                        <i class="bi bi-search"></i> Search “${fontName} license”
+                    </a>
+                </div>
+                <div class="mt-3 small license-note">
+                    <p><i class="bi bi-info-circle"></i> Fonts were gathered from open sources (e.g., dafont.com, befonts.com, justfreefonts.com). Many are free for personal use, but terms vary.</p>
+                    <p class="mb-0">Please verify the correct license for each font before commercial or public use.</p>
+                </div>
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('licenseModal'));
+            modal.show();
+        }
+        
+        function updatePreviewText(text) {
+            document.querySelectorAll('.font-name').forEach(el => {
+                el.textContent = text || el.dataset.defaultText || el.textContent;
+            });
+        }
+
+        // Function to load fonts for a specific folder
+        function loadFontsForFolder(folder) {
+            const tabContent = document.getElementById(folder.id);
+            if (!tabContent) return;
+            
+            // Clear loading indicator
+            tabContent.innerHTML = '';
+            
+            // Get font files for this folder
+            const fontFiles = mergedFonts[folder.name] || [];
+            
+            if (fontFiles.length === 0) {
+                const noFonts = document.createElement('div');
+                noFonts.className = 'no-fonts';
+                noFonts.innerHTML = `<p><i class="bi bi-exclamation-triangle"></i> No font files found in this folder.</p>`;
+                tabContent.appendChild(noFonts);
+                return;
+            }
+            
+            // Create font cards
+            fontFiles.forEach((font, index) => {
+                const fontCard = document.createElement('div');
+                fontCard.className = 'font-card';
+                
+                // Create a unique font family name
+                const fontFamilyName = `${folder.name.replace(/\s+/g, '')}_${index}`;
+                const fontPath = `${folder.path}${font.fontfile}`;
+                
+                // Load font dynamically
+                loadFont(fontFamilyName, fontPath);
+                
+                // Use provided font name or extract from filename
+                const displayName = font.fontname || extractFontName(font.fontfile);
+                const previewInput = document.getElementById('previewInput');
+                const previewText = previewInput && previewInput.value.trim().length
+                    ? previewInput.value
+                    : displayName;
+                
+                fontCard.innerHTML = `
+                    <div class="font-name" style="font-family: '${fontFamilyName}', sans-serif;">
+                        ${previewText}
+                    </div>
+                    <div class="font-meta">
+                        <span>${font.fontfile}</span>
+                        <a href="#" class="license-link" data-font="${displayName}" data-filename="${font.fontfile}">
+                            <i class="bi bi-info-circle"></i> License
+                        </a>
+                    </div>
+                `;
+                
+                // Add click event for license link
+                const licenseLink = fontCard.querySelector('.license-link');
+                licenseLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showLicenseModal(displayName, font.fontfile, font.merged);
+                });
+
+                const nameEl = fontCard.querySelector('.font-name');
+                nameEl.dataset.defaultText = displayName;
+                
+                tabContent.appendChild(fontCard);
+            });
+        }
+        
+        // Event listener for tab changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('active');
+
+            const previewInput = document.getElementById('previewInput');
+            previewInput.addEventListener('input', () => {
+                updatePreviewText(previewInput.value);
+            });
+
+            fetch('fonts_merged.json')
+                .then(response => response.json())
+                .then(data => {
+                    mergedFonts = data || {};
+                    loadFontsForFolder(folders[0]);
+                    updatePreviewText(previewInput.value);
+                    overlay.classList.remove('active');
+                })
+                .catch(() => {
+                    mergedFonts = {};
+                    loadFontsForFolder(folders[0]);
+                    updatePreviewText(previewInput.value);
+                    overlay.classList.remove('active');
+                });
+
+            // Add event listeners for tab changes
+            const tabButtons = document.querySelectorAll('#fontTabs button[data-bs-toggle="tab"]');
+            tabButtons.forEach(button => {
+                button.addEventListener('shown.bs.tab', function(event) {
+                    const targetId = event.target.getAttribute('data-bs-target').replace('#', '');
+                    const folder = folders.find(f => f.id === targetId);
+                    if (folder) {
+                        loadFontsForFolder(folder);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
