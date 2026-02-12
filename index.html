@@ -640,18 +640,20 @@
     const a = e.target.closest && e.target.closest("a");
     if (!a) return;
 
-    // Only handle real navigations
+    // In normal browser usage (e.g. GitHub Pages), do not hijack links.
+    // This keeps in-page links like "License" working (modal opens correctly).
+    if (window.parent === window) return;
+
+    const hrefAttr = (a.getAttribute("href") || "").trim();
     const href = a.href;
     if (!href) return;
 
-    // If you want: only force external / downloads
-    // const isDownload = a.hasAttribute("download") || /\.(zip|exe|dmg|pdf)$/i.test(href);
-    // if (!isDownload) return;
+    // Ignore in-page/hash links so local click handlers can run.
+    if (!hrefAttr || hrefAttr === "#" || hrefAttr.startsWith("#")) return;
 
+    // In embedded CEP mode, send true navigations/downloads to parent.
     e.preventDefault();
     e.stopPropagation();
-
-    // Send to parent CEP panel
     window.parent.postMessage({ type: "OPEN_IN_BROWSER", href }, "*");
   }, true);
         
